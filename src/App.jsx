@@ -17,6 +17,21 @@ const API_PAGE_SIZE = 10
 const FAVORITES_KEY = 'purrfect-favorites'
 const FAVORITES_PAGE_SIZE = 9
 const CAT_ID_COLLATOR = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
+const CAT_SPOTLIGHTS = [
+  'A little pause for your day.',
+  'A new favorite waiting to happen.',
+  'A small dose of cozy for your screen.',
+  'One more reason to smile today.',
+  'A charming find for your collection.',
+  'A fresh face to brighten your scroll.',
+  'A lovely little moment to save.',
+  'A reminder that cats make everything better.',
+]
+
+function getCatSpotlight(id) {
+  const index = [...id].reduce((total, character) => total + character.charCodeAt(0), 0)
+  return CAT_SPOTLIGHTS[index % CAT_SPOTLIGHTS.length]
+}
 
 function PawIcon({ className = '' }) {
   return (
@@ -164,6 +179,7 @@ function Header({ favoriteCount }) {
 
 function CatCard({ cat, displayNumber, isFavorite, onToggleFavorite }) {
   const breed = cat.breeds?.[0]
+  const spotlight = getCatSpotlight(cat.id)
 
   return (
     <article className="cat-card">
@@ -188,10 +204,10 @@ function CatCard({ cat, displayNumber, isFavorite, onToggleFavorite }) {
       </div>
       <div className="cat-card-copy">
         <div className="cat-title-row">
-          <h3>{breed?.name || 'A lovely mystery'}</h3>
+          <h3>{breed?.name || `Cat #${displayNumber}`}</h3>
           <span className="cat-id">#{displayNumber}</span>
         </div>
-        <p>{breed?.origin || 'A little cat with a big personality'}</p>
+        <p>{breed?.origin || `${spotlight} Photo ID: ${cat.id}`}</p>
         <Link className="text-link" state={{ cat, displayNumber }} to={`/cats/${cat.id}`}>
           Meet this cat <span aria-hidden="true">→</span>
         </Link>
@@ -590,6 +606,7 @@ function CatDetailsPage({ isFavorite, onToggleFavorite }) {
 
   const breed = cat.breeds?.[0]
   const favorite = isFavorite(cat.id)
+  const spotlight = getCatSpotlight(cat.id)
 
   return (
     <>
@@ -604,13 +621,22 @@ function CatDetailsPage({ isFavorite, onToggleFavorite }) {
             <div className="eyebrow">
               <span className="eyebrow-dot" />{displayNumber ? ` CAT NO. ${displayNumber}` : ' CAT PROFILE'}
             </div>
-            <h1>{breed?.name || 'A lovely mystery'}</h1>
+            <h1>{breed?.name || `Cat #${displayNumber || cat.id}`}</h1>
             <p className="detail-lead">
-              {breed?.description || 'A charming cat with a story all their own. Save them to your favorites and come back whenever you need a smile.'}
+              {breed?.description || `${spotlight} Save photo ${cat.id} to find this cat again whenever you need a smile.`}
             </p>
             <div className="detail-facts">
-              <div><span>ORIGIN</span><strong>{breed?.origin || 'A mystery worth keeping'}</strong></div>
-              <div><span>TEMPERAMENT</span><strong>{breed?.temperament || 'Curious, cozy & lovable'}</strong></div>
+              {breed ? (
+                <>
+                  <div><span>ORIGIN</span><strong>{breed.origin || 'Not listed'}</strong></div>
+                  <div><span>TEMPERAMENT</span><strong>{breed.temperament || 'Not listed'}</strong></div>
+                </>
+              ) : (
+                <>
+                  <div><span>PHOTO ID</span><strong>{cat.id}</strong></div>
+                  <div><span>CAT NOTE</span><strong>{spotlight}</strong></div>
+                </>
+              )}
               {breed?.life_span && <div><span>LIFE SPAN</span><strong>{breed.life_span} years</strong></div>}
             </div>
             <button
